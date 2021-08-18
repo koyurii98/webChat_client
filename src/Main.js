@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
-const Main = () => {
+const chatList = [
+  {id:1, user_id:'yul', name:'yul', to:'ri'},
+  {id:2, user_id:'ri', name:'ri', to:'yul'},
+  {id:3, user_id:'jun', name:'jun', to:'yul'},
+  {id:4, user_id:'jun', name:'jun', to:'ri'},
+]
+
+const Main = (props) => {
   const history = useHistory();
+  const queryString = props.location.search;
 
   return(
     <div>
-      <button onClick={()=>history.push('/chat?id=1&user_id=yul&name=yul&to=ri')}>채팅방1입장</button>
-      <button onClick={()=>history.push('/chat?id=2&user_id=ri&name=ri&to=yul')}>채팅방2입장</button>
-      <button onClick={()=>history.push('/chat?id=3&user_id=jun&name=jun&to=yul')}>채팅방3입장</button>
+      {chatList.map((data,i)=>{
+        return  <button key={i} onClick={()=>history.push({pathname:`/chat?id=${data.id}&user_id=${data.user_id}&name=${data.name}&to=${data.to}`, state:{ chatList } })}>{`${data.name} ->${data.to}`}</button>
+      })}
     </div>
   );
 }
