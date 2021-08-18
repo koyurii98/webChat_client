@@ -19,21 +19,25 @@ const Chat = (props) => {
     if( !id && !user_id && !name && !to){
       history.replace('/');
     }
-  },[id, user_id, name, to])
+  },[id, user_id, name, to, history])
 
   useEffect(()=>{
     socket = io(`http://localhost:8000?chatID=${user_id}&name=${user_id}`);
     socket.on(`connect`, ()=>{
-      console.log('서버와 연결됨');
       socket.emit('newUser', name);
     });
-  },[]);
+  }, [user_id, name]);
 
   useEffect(()=>{
     if(!onLine){
       socket.on('update', ({name, message, time, type})=>{
-        if(type==='connect'){
+        if(type){
           setOnLine(true);
+          if(type==='connect'){
+            setOnLine(true)
+          }else if(type==='disconnect'){
+            setOnLine(false);
+          }
           const msg = {
             content:message,
             senderChatID:name,
@@ -41,25 +45,18 @@ const Chat = (props) => {
             time:moment(time).format('hh:mm'),
           }
           setMsgs(msgs.concat(msg));
-        }else{
-          setOnLine(false)
         }
       });
     }
 
-    socket.on('receive_message', ({message})=>{
-      const msg = {
-        content:message.content,
-        senderChatID:message.senderChatID,
-        receiverChatID:message.receiverChatID,
-        time:message.time
-      }
-      if(message.senderChatID == to){
+    socket.on('receive_message', ({content, senderChatID, receiverChatID, time})=>{
+      if(senderChatID === to){
+        const msg = { content, senderChatID, receiverChatID, time };
         setMsgs(msgs.concat(msg));
       }
     });
     
-  },[msgs,to, user_id])
+  },[msgs,to, user_id, onLine])
 
   const send = useCallback(() => {
     socket.emit('send_message', { type:'message', receiverChatID: to, senderChatID: user_id, content: message, time:moment().format('hh:mm')});
@@ -70,7 +67,8 @@ const Chat = (props) => {
       time:moment().format('hh:mm'),
     }
     setMsgs(msgs.concat(msg));
-  },[message, msgs]);
+    setMessage('');
+  },[message, msgs, to, user_id]);
 
   
 
@@ -85,7 +83,7 @@ const Chat = (props) => {
         {
           msgs.map((msg,i)=>{
             return (
-              <div key={i} style={{ color: msg.senderChatID == user_id ? 'red': 'black'}}>
+              <div key={i} style={{ color: msg.senderChatID === user_id ? 'red': 'black'}}>
                 <span>{msg.senderChatID} - </span>
                 <span>{msg.content}</span>
                 <span>{msg.time}</span>
@@ -94,8 +92,8 @@ const Chat = (props) => {
           })
         }
       </div>
-      <input type="text" onChange={(e)=>setMessage(e.target.value)}/>
-      <button onClick={()=>send()} onkeydown={()=>{}}>전송</button>
+      <input type="text" placeholder={'내용을 입력해주세요'} value={message} onChange={(e)=>setMessage(e.target.value)} onKeyPress={(e)=>{if(e.code==='Enter'){send()}}}/>
+      <button onClick={()=>send()}>전송</button>
       <span onClick={()=>setMsgs([])}>채팅내용지우기</span>
     </div>
   );
