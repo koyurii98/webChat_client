@@ -1,6 +1,7 @@
 import {  BrowserRouter, Route} from 'react-router-dom';
-import Chat from './Chat';
-import Main from './Main';
+import Chat from './pages/Chat';
+import ChatList from './pages/ChatList';
+import Main from './pages/Main';
 
 function App() {
   return (
@@ -8,6 +9,7 @@ function App() {
       <BrowserRouter>
         <Route exact path="/" component={Main}/>
         <Route path="/chat" component={Chat}/>
+        <Route path="/chatlist" component={ChatList}/>
       </BrowserRouter>
     </div>
   );
